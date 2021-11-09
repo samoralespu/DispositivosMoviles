@@ -40,12 +40,11 @@ class _MyHomePageState extends State<MyHomePage> {
   late List<List<String>> matrix;
   bool _btnEnabled = true;
   List<String> difficultyLevel = ["Easy", "Harder", "Expert"];
-  String mDifficultyLevel = "";
+  String mDifficultyLevel = "Easy";
 
 
   @override
   void initState() {
-    mDifficultyLevel = difficultyLevel[0];
     super.initState();
     setEmptyFields();
   }
@@ -125,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Expanded(
           flex: 1,
           child: ElevatedButton.icon(
-            onPressed: () => SystemNavigator.pop(),
+            onPressed: () => exitGame(),
             label: Text("Quit"),
             icon: Icon(Icons.exit_to_app),
             style: ElevatedButton.styleFrom(
@@ -209,79 +208,106 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool isEnd() => matrix.every((values) => values.every((value) => value != Player.openSpot));
 
-  Coordinates getRandomMove(newValue) {
-    dynamic xr;
-    dynamic xy;
-    var ranX = new Random();
-    var ranY = new Random();
-    xr = ranX.nextInt(3);
-    xy = ranY.nextInt(3);
-
-    while (matrix[xr][xy] != Player.openSpot){
-      xr = ranX.nextInt(3);
-      xy = ranY.nextInt(3);
-    }
-
-    setState(() {
-      lastMove = newValue;
-      matrix[xr][xy] = newValue;
-    });
-    return Coordinates(xr,xy);
-  }
-
-  Coordinates getWinningMove(newValue, n) {
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
-        if ((matrix[i][j] == Player.openSpot) && willWin(i, j, "X") && lastMove == Player.humanPlayer) {
-          setState(() {
-            lastMove = newValue;
-            matrix[i][j] = newValue;
-          });
-          return Coordinates(i,j);
-        }
-      }
-    }
-    return Coordinates(4,4);
-  }
-
-  Coordinates getBlockingMove(newValue, n) {
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
-        if ((matrix[i][j] == Player.openSpot) && willWin(i, j, "O") && lastMove == Player.humanPlayer) {
-          setState(() {
-            lastMove = newValue;
-            matrix[i][j] = newValue;
-          });
-          return Coordinates(i,j);
-        }
-      }
-    }
-    return Coordinates(4,4);
-  }
-
   Coordinates getComputerMove() {
     const newValue = Player.computerPlayer;
     const n = countMatrix;
-    Coordinates move = Coordinates(4,4);
 
     if (mDifficultyLevel == difficultyLevel[0]) {
-      move = getRandomMove(newValue);
-    } else if(mDifficultyLevel == difficultyLevel[1]){
-      move = getWinningMove(newValue, n);
-      if (move == Coordinates(4,4)){
-        move = getRandomMove(newValue);
-      }
-    } else {
-      move = getWinningMove(newValue, n);
-      if (move == Coordinates(4,4)){
-        move = getBlockingMove(newValue, n);
-      }
-      if (move == Coordinates(4,4)){
-        move = getRandomMove(newValue);
-      }
-    }
+      dynamic xr;
+      dynamic xy;
+      var ranX = new Random();
+      var ranY = new Random();
+      xr = ranX.nextInt(3);
+      xy = ranY.nextInt(3);
 
-    return move;
+      while (matrix[xr][xy] != Player.openSpot){
+        xr = ranX.nextInt(3);
+        xy = ranY.nextInt(3);
+      }
+
+      setState(() {
+        lastMove = newValue;
+        matrix[xr][xy] = newValue;
+      });
+      return Coordinates(xr,xy);
+    } else if(mDifficultyLevel == difficultyLevel[1]){
+      //Winning
+      for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+          if ((matrix[i][j] == Player.openSpot) && willWin(i, j, "O") && lastMove == Player.humanPlayer) {
+            setState(() {
+              lastMove = newValue;
+              matrix[i][j] = newValue;
+            });
+            return Coordinates(i,j);
+          }
+        }
+      }
+
+      //Random
+      dynamic xr;
+      dynamic xy;
+      var ranX = new Random();
+      var ranY = new Random();
+      xr = ranX.nextInt(3);
+      xy = ranY.nextInt(3);
+
+      while (matrix[xr][xy] != Player.openSpot){
+        xr = ranX.nextInt(3);
+        xy = ranY.nextInt(3);
+      }
+
+      setState(() {
+        lastMove = newValue;
+        matrix[xr][xy] = newValue;
+      });
+      return Coordinates(xr,xy);
+
+    } else {
+      //Winning
+      for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+          if ((matrix[i][j] == Player.openSpot) && willWin(i, j, "O") && lastMove == Player.humanPlayer) {
+            setState(() {
+              lastMove = newValue;
+              matrix[i][j] = newValue;
+            });
+            return Coordinates(i,j);
+          }
+        }
+      }
+      //Blocking
+      for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+          if ((matrix[i][j] == Player.openSpot) && willWin(i, j, "X") && lastMove == Player.humanPlayer) {
+            setState(() {
+              lastMove = newValue;
+              matrix[i][j] = newValue;
+            });
+            return Coordinates(i,j);
+          }
+        }
+      }
+
+      //Random
+      dynamic xr;
+      dynamic xy;
+      var ranX = new Random();
+      var ranY = new Random();
+      xr = ranX.nextInt(3);
+      xy = ranY.nextInt(3);
+
+      while (matrix[xr][xy] != Player.openSpot){
+        xr = ranX.nextInt(3);
+        xy = ranY.nextInt(3);
+      }
+
+      setState(() {
+        lastMove = newValue;
+        matrix[xr][xy] = newValue;
+      });
+      return Coordinates(xr,xy);
+    }
   }
 
   bool willWin(int x, int y, String z) {
@@ -331,13 +357,91 @@ class _MyHomePageState extends State<MyHomePage> {
     builder: (context) => AlertDialog(
       content: const Text('Reiniciar el juego'),
       actions: [
-        ElevatedButton(
-          onPressed: () {
-            setEmptyFields();
-            Navigator.of(context).pop();
-          },
-          child: const Text('Reiniciar'),
-        )
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Row(
+              children: [
+                Radio(value: difficultyLevel[0],
+                    groupValue: mDifficultyLevel,
+                    onChanged: (value){
+                      setEmptyFields();
+                      setState(() {
+                        mDifficultyLevel = difficultyLevel[0];
+                      });
+                      Navigator.of(context).pop();
+                    }),
+                SizedBox(width: 10.0,),
+                Text(difficultyLevel[0]),
+              ],
+            ),
+            Row(
+              children: [
+                Radio(
+                    value: difficultyLevel[1],
+                    groupValue: mDifficultyLevel,
+                    onChanged: (value){
+                      setEmptyFields();
+                      setState(() {
+                        mDifficultyLevel = difficultyLevel[1];
+                      });
+                      Navigator.of(context).pop();
+                    }),
+                SizedBox(width: 10.0,),
+                Text(difficultyLevel[1]),
+              ],
+            ),
+            Row(
+              children: [
+                Radio(
+                    value: difficultyLevel[2],
+                    groupValue: mDifficultyLevel,
+                    onChanged: (value){
+                      setEmptyFields();
+                      setState(() {
+                        mDifficultyLevel = difficultyLevel[2];
+                      });
+                      Navigator.of(context).pop();
+                    }),
+                SizedBox(width: 10.0,),
+                Text(difficultyLevel[2]),
+              ],
+            ),
+            ElevatedButton(
+              onPressed: () {
+                //setEmptyFields();
+                Navigator.of(context).pop();
+              }, child: const Text('Cerrar'),
+            )
+          ],
+        ),
+      ],
+    ),
+  );
+
+  Future exitGame() => showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      content: const Text('¿Seguro desea cerrar el juego?'),
+      actions: [
+        Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                SystemNavigator.pop();
+              }, child: const Text('Si'),
+            ),
+            SizedBox(width: 10.0,),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              }, child: const Text('No'),
+            )
+          ],
+        ),
       ],
     ),
   );
