@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
+
 class MyHomePage extends StatefulWidget {
   final String title;
   const MyHomePage({Key? key, required this.title}) : super(key: key);
@@ -43,9 +45,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
+    mDifficultyLevel = difficultyLevel[0];
     super.initState();
     setEmptyFields();
-    mDifficultyLevel = difficultyLevel[0];
   }
 
   void setEmptyFields() {
@@ -110,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Expanded(
           flex: 1,
           child: ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () => showChangeDifficulty(),
             label: Text("Difficulty"),
             icon: Icon(Icons.all_inclusive_outlined),
             style: ElevatedButton.styleFrom(
@@ -159,9 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         child: Text(value, style: const TextStyle(fontSize: 32, color: Colors.black)),
         onPressed: (){
-          print(_btnEnabled);
           if(_btnEnabled){
-            print(_btnEnabled);
             if (value == Player.openSpot && (lastMove == Player.computerPlayer || lastMove == Player.openSpot)) {
               selectField(value, x, y);
             }
@@ -209,29 +209,27 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool isEnd() => matrix.every((values) => values.every((value) => value != Player.openSpot));
 
-  Coordinates getRandomMove() {
+  Coordinates getRandomMove(newValue) {
+    dynamic xr;
+    dynamic xy;
+    var ranX = new Random();
+    var ranY = new Random();
+    xr = ranX.nextInt(3);
+    xy = ranY.nextInt(3);
 
+    while (matrix[xr][xy] != Player.openSpot){
+      xr = ranX.nextInt(3);
+      xy = ranY.nextInt(3);
+    }
+
+    setState(() {
+      lastMove = newValue;
+      matrix[xr][xy] = newValue;
+    });
+    return Coordinates(xr,xy);
   }
 
-  Coordinates getComputerMove() {
-    const newValue = Player.computerPlayer;
-    const n = countMatrix;
-
-    if (mDifficultyLevel == difficultyLevel[0]) {
-
-    }
-
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
-        if ((matrix[i][j] == Player.openSpot) && willWin(i, j, "O") && lastMove == Player.humanPlayer) {
-          setState(() {
-            lastMove = newValue;
-            matrix[i][j] = newValue;
-          });
-          return Coordinates(i,j);
-        }
-      }
-    }
+  Coordinates getWinningMove(newValue, n) {
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
         if ((matrix[i][j] == Player.openSpot) && willWin(i, j, "X") && lastMove == Player.humanPlayer) {
@@ -243,27 +241,47 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     }
+    return Coordinates(4,4);
+  }
 
-    dynamic xr;
-    dynamic xy;
-    var ranX = new Random();
-    var ranY = new Random();
-    xr = ranX.nextInt(3);
-    xy = ranY.nextInt(3);
+  Coordinates getBlockingMove(newValue, n) {
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+        if ((matrix[i][j] == Player.openSpot) && willWin(i, j, "O") && lastMove == Player.humanPlayer) {
+          setState(() {
+            lastMove = newValue;
+            matrix[i][j] = newValue;
+          });
+          return Coordinates(i,j);
+        }
+      }
+    }
+    return Coordinates(4,4);
+  }
 
+  Coordinates getComputerMove() {
+    const newValue = Player.computerPlayer;
+    const n = countMatrix;
+    Coordinates move = Coordinates(4,4);
 
-    while (matrix[xr][xy] != Player.openSpot){
-      xr = ranX.nextInt(3);
-      xy = ranY.nextInt(3);
+    if (mDifficultyLevel == difficultyLevel[0]) {
+      move = getRandomMove(newValue);
+    } else if(mDifficultyLevel == difficultyLevel[1]){
+      move = getWinningMove(newValue, n);
+      if (move == Coordinates(4,4)){
+        move = getRandomMove(newValue);
+      }
+    } else {
+      move = getWinningMove(newValue, n);
+      if (move == Coordinates(4,4)){
+        move = getBlockingMove(newValue, n);
+      }
+      if (move == Coordinates(4,4)){
+        move = getRandomMove(newValue);
+      }
     }
 
-    setState(() {
-      lastMove = newValue;
-      matrix[xr][xy] = newValue;
-    });
-
-
-    return Coordinates(xr,xy);
+    return move;
   }
 
   bool willWin(int x, int y, String z) {
@@ -307,11 +325,10 @@ class _MyHomePageState extends State<MyHomePage> {
     return row == n || col == n || diag == n || rdiag == n;
   }
 
-  Future showChangeDifficulty(String title) => showDialog(
+  Future showChangeDifficulty() => showDialog(
     context: context,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
-      title: Text(title),
       content: const Text('Reiniciar el juego'),
       actions: [
         ElevatedButton(
