@@ -57,13 +57,24 @@ class _MyHomePageState extends State<MyHomePage> {
     _btnEnabled = true;
   }
 
+  Color getFieldColor(String value) {
+    switch (value) {
+      case Player.computerPlayer:
+        return Colors.blue;
+      case Player.humanPlayer:
+        return Colors.red;
+      default:
+        return Colors.white;
+    }
+  }
+
   void setButtonDisabled() => setState(() => matrix = List.generate(
     countMatrix, (_) => List.generate(countMatrix, (_) => Player.openSpot),
   ));
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: Colors.grey,
+    backgroundColor: Colors.blue.withAlpha(150),
     appBar: AppBar(
       title: Text(widget.title),
     ),
@@ -150,13 +161,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget buildField(int x, int y) {
     final value = matrix[x][y];
+    final color = getFieldColor(value);
 
     return Container(
       margin: const EdgeInsets.all(4),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(size, size),
-          primary: Colors.white,
+          primary: color,
         ),
         child: Text(value, style: const TextStyle(fontSize: 32, color: Colors.black)),
         onPressed: (){
@@ -355,6 +367,7 @@ class _MyHomePageState extends State<MyHomePage> {
     context: context,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
+      backgroundColor: Colors.lightBlue,
       content: const Text('Reiniciar el juego'),
       actions: [
         Column(
@@ -423,6 +436,7 @@ class _MyHomePageState extends State<MyHomePage> {
     context: context,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
+      backgroundColor: Colors.blue.withAlpha(150),
       content: const Text('¿Seguro desea cerrar el juego?'),
       actions: [
         Row(
