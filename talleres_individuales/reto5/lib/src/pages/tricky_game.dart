@@ -1,7 +1,6 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'dart:io';
-
 import 'package:flutter/services.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -41,12 +40,16 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _btnEnabled = true;
   List<String> difficultyLevel = ["Easy", "Harder", "Expert"];
   String mDifficultyLevel = "Easy";
-
+  late final AudioCache _audioCache;
 
   @override
   void initState() {
     super.initState();
     setEmptyFields();
+    _audioCache = AudioCache(
+      prefix: 'assets/audio/',
+      fixedPlayer: AudioPlayer()..setReleaseMode(ReleaseMode.STOP),
+    );
   }
 
   void setEmptyFields() {
@@ -160,19 +163,30 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildField(int x, int y) {
-    final value = matrix[x][y];
+    //AudioC
+    String value = matrix[x][y];
     final color = getFieldColor(value);
+    String value2 = "assets/images/empty.png";
+    if (value == "X"){
+      value2 = "assets/images/x.png";
+    } else if (value == "O"){
+      value2 = "assets/images/o.png";
+    }
 
     return Container(
+      width: 100,
+      height: 100,
       margin: const EdgeInsets.all(4),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(size, size),
           primary: color,
         ),
-        child: Text(value, style: const TextStyle(fontSize: 32, color: Colors.black)),
+        //child: Text(value, style: const TextStyle(fontSize: 32, color: Colors.black)),
+        child: Image.asset(value2),
         onPressed: (){
           if(_btnEnabled){
+            _audioCache.play('draw.mp3');
             if (value == Player.openSpot && (lastMove == Player.computerPlayer || lastMove == Player.openSpot)) {
               selectField(value, x, y);
             }
