@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
@@ -81,31 +83,87 @@ class _MyHomePageState extends State<MyHomePage> {
       ));
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    final mediaQueryData = MediaQuery.of(context);
+
+    if (mediaQueryData.orientation == Orientation.landscape) {
+      return _returnScaffold(true);
+    } else {
+      return _returnScaffold(false);
+    }
+  }
+
+  Widget _returnScaffold(bool isLandscape) {
+    if (isLandscape) {
+      return Scaffold(
         backgroundColor: Colors.blue.withAlpha(150),
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: Stack(children: <Widget>[
-          Container(
-            alignment: Alignment.center,
-            child: Image.asset('assets/images/board.png',
-                height: 350, width: 320, fit: BoxFit.cover),
-          ),
-          Center(
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                ..._Utils.modelBuilder(matrix, (x, value) => buildRow(x)),
-                const SizedBox(height: 10),
-                //if (!_btnEnabled) winnerText(),
-              ])),
-          if (!_btnEnabled) winnerText(),
-        ]),
-        persistentFooterButtons: <Widget>[
-          _bottomButtons(),
-        ],
+        body: Center(
+          child: landscapeOrientation(),
+        ),
       );
+    } else {
+      return Scaffold(
+        backgroundColor: Colors.blue.withAlpha(150),
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: Center(
+          child: portraitOrientation(),
+        ),
+        bottomNavigationBar: _bottomButtons(isLandscape),
+      );
+    }
+  }
+
+  Widget portraitOrientation() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        boardGame(1.9),
+        if (!_btnEnabled) winnerText(),
+      ],
+    );
+  }
+
+  Widget landscapeOrientation() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          children: [
+            boardGame(2.0),
+            Column(
+              children: [
+                if (!_btnEnabled) winnerText(),
+                _bottomButtons(true),
+              ],
+            )
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget boardGame(double scaleContainer) {
+    return Stack(children: <Widget>[
+      Container(
+        alignment: Alignment.center,
+        child: Image.asset(
+          'assets/images/board.png',
+          fit: BoxFit.scaleDown,
+          scale: scaleContainer,
+        ),
+      ),
+      Column(
+          //mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ..._Utils.modelBuilder(matrix, (x, value) => buildRow(x)),
+          ]),
+    ]);
+  }
 
   Widget winnerText() {
     final _estiloTexto = new TextStyle(fontSize: 32);
@@ -115,11 +173,10 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _bottomButtons() {
-    return Row(mainAxisSize: MainAxisSize.max, children: <Widget>[
-      Expanded(
-        flex: 1,
-        child: ElevatedButton.icon(
+  Widget _bottomButtons(bool isLandscape) {
+    if (isLandscape) {
+      return Column(children: <Widget>[
+        ElevatedButton.icon(
           onPressed: () {
             setEmptyFields();
           },
@@ -130,22 +187,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           ),
         ),
-      ),
-      Expanded(
-        flex: 1,
-        child: ElevatedButton.icon(
+        ElevatedButton.icon(
           onPressed: () => showChangeDifficulty(),
           label: Text("Difficulty"),
-          icon: Icon(Icons.all_inclusive_outlined),
+          icon: const Icon(Icons.all_inclusive_outlined),
           style: ElevatedButton.styleFrom(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           ),
         ),
-      ),
-      Expanded(
-        flex: 1,
-        child: ElevatedButton.icon(
+        ElevatedButton.icon(
           onPressed: () => exitGame(),
           label: Text("Quit"),
           icon: Icon(Icons.exit_to_app),
@@ -154,8 +205,70 @@ class _MyHomePageState extends State<MyHomePage> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           ),
         ),
+      ]);
+    } else {
+      return Row(mainAxisSize: MainAxisSize.max, children: <Widget>[
+        Expanded(
+          flex: 1,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              setEmptyFields();
+            },
+            label: Text("New game"),
+            icon: Icon(Icons.autorenew),
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: ElevatedButton.icon(
+            onPressed: () => showChangeDifficulty(),
+            label: Text("Difficulty"),
+            icon: const Icon(Icons.all_inclusive_outlined),
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: ElevatedButton.icon(
+            onPressed: () => exitGame(),
+            label: Text("Quit"),
+            icon: Icon(Icons.exit_to_app),
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+            ),
+          ),
+        ),
+      ]);
+    }
+  }
+
+  Widget gameButton(String labelText, Icon icon, int functionButton) {
+    var action = null;
+    if (functionButton == 1) {
+      action = showChangeDifficulty();
+    } else if (functionButton == 2) {
+      action = exitGame();
+    }
+    return Expanded(
+      flex: 1,
+      child: ElevatedButton.icon(
+        onPressed: () => action,
+        label: Text(labelText),
+        icon: icon,
+        style: ElevatedButton.styleFrom(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ),
       ),
-    ]);
+    );
   }
 
   Widget buildRow(int x) {
@@ -196,7 +309,7 @@ class _MyHomePageState extends State<MyHomePage> {
           splashFactory: NoSplash.splashFactory,
         ),
         //child: Text(value, style: const TextStyle(fontSize: 32, color: Colors.black)),
-        child: Image.asset(value2),
+        child: Image.asset(value2, width: 150, height: 150),
         clipBehavior: Clip.none,
         onPressed: () {
           NoSplash.splashFactory;
