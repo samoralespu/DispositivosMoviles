@@ -129,18 +129,21 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget landscapeOrientation() {
+    double c_width = MediaQuery.of(context).size.width * 0.4;
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Row(
+        boardGame(1.9),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            boardGame(2.0),
-            Column(
-              children: [
-                if (!_btnEnabled) winnerText(),
-                _bottomButtons(true),
-              ],
-            )
+            _bottomButtons(true),
+            if (_btnEnabled)
+              Container(
+                width: c_width,
+                height: 80.0,
+              ),
+            if (!_btnEnabled) Container(width: c_width, child: winnerText()),
           ],
         ),
       ],
@@ -157,20 +160,16 @@ class _MyHomePageState extends State<MyHomePage> {
           scale: scaleContainer,
         ),
       ),
-      Column(
-          //mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ..._Utils.modelBuilder(matrix, (x, value) => buildRow(x)),
-          ]),
+      Column(children: <Widget>[
+        ..._Utils.modelBuilder(matrix, (x, value) => buildRow(x)),
+      ]),
     ]);
   }
 
   Widget winnerText() {
     final _estiloTexto = new TextStyle(fontSize: 32);
-    return Text(
-      "$winnerTextString",
-      style: _estiloTexto,
-    );
+    return Text(winnerTextString,
+        style: _estiloTexto, textAlign: TextAlign.center);
   }
 
   Widget _bottomButtons(bool isLandscape) {
