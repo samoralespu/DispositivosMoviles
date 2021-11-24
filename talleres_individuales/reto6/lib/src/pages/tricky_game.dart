@@ -1,9 +1,8 @@
-import 'dart:ffi';
-
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
   final String title;
@@ -42,7 +41,11 @@ class _MyHomePageState extends State<MyHomePage> {
   static const double size = 120;
   String winnerTextString = "";
   String lastMove = Player.openSpot;
-  late List<List<String>> matrix;
+  List<List<String>> matrix = [
+    ["", "", ""],
+    ["", "", ""],
+    ["", "", ""]
+  ];
   bool _btnEnabled = true;
   List<String> difficultyLevel = ["Easy", "Harder", "Expert"];
   String mDifficultyLevel = "Easy";
@@ -50,20 +53,131 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
+    getlastMove();
+    getBtnEnabled();
+    getWinnerTextString();
+    getMatrix();
+    //setEmptyFields();
+    //setWinnerTextString(getWinnerTextString());
     super.initState();
-    setEmptyFields();
     _audioCache = AudioCache(
       prefix: 'assets/audio/',
       fixedPlayer: AudioPlayer()..setReleaseMode(ReleaseMode.STOP),
     );
   }
 
+  Future<String> getWinnerTextString() async {
+    final pref = await SharedPreferences.getInstance();
+    final winnerTextString1 = pref.getString('winnerTextString');
+
+    if (winnerTextString1 == null) {
+      setState(() => winnerTextString = '');
+      return '';
+    }
+    setState(() => winnerTextString = winnerTextString1);
+    return winnerTextString1;
+  }
+
+  Future<void> setWinnerTextString(prefValue) async {
+    final pref = await SharedPreferences.getInstance();
+    await pref.setString('winnerTextString', prefValue);
+    print("new winnerTextString :" + prefValue);
+    getMatrix();
+  }
+
+  Future<String> getlastMove() async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    final lastMove1 = pref.getString('lastMove');
+
+    if (lastMove1 == null) {
+      setState(() => lastMove = '');
+      return '';
+    }
+    setState(() => lastMove = lastMove1);
+    return lastMove1;
+  }
+
+  Future<void> setlastMove(prefValue) async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    pref.setString('lastMove', prefValue);
+  }
+
+  Future<List<String>> getMatrix() async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    final matrix0 = pref.getStringList('matrix0');
+    final matrix1 = pref.getStringList('matrix1');
+    final matrix2 = pref.getStringList('matrix2');
+    print("MATRIXXXXXXXX: " + matrix.toString());
+    if (matrix0 == null || matrix1 == null || matrix2 == null) {
+      setState() {
+        matrix[0] = ['', '', ''];
+        matrix[1] = ['', '', ''];
+        matrix[2] = ['', '', ''];
+      }
+
+      print("MATRIXXXXXXXX NULLLLL: " + matrix.toString());
+      return [];
+    }
+    //setState() {
+    matrix[0] = matrix0;
+    matrix[1] = matrix1;
+    matrix[2] = matrix2;
+    //}
+
+    print("MATRIXXXXXXXX not: " + matrix.toString());
+    return matrix1;
+  }
+
+  Future<void> setMatrix0(prefValue) async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.setStringList('matrix0', prefValue);
+    print("new MATRIX0 :" + prefValue.toString());
+  }
+
+  Future<void> setMatrix1(prefValue) async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.setStringList('matrix1', prefValue);
+    print("new MATRIX1 :" + prefValue.toString());
+  }
+
+  Future<void> setMatrix2(prefValue) async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.setStringList('matrix2', prefValue);
+    print("new MATRIX2 :" + prefValue.toString());
+  }
+
+  Future<bool> getBtnEnabled() async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    final btnEnabled1 = pref.getBool('BtnEnabled');
+
+    if (btnEnabled1 == null) {
+      setState(() => _btnEnabled = true);
+      return true;
+    }
+    setState(() => _btnEnabled = btnEnabled1);
+    return btnEnabled1;
+  }
+
+  Future<void> setBtnEnabled(prefValue) async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    pref.setBool('BtnEnabled', prefValue);
+  }
+
   void setEmptyFields() {
-    setState(() => matrix = List.generate(
-          countMatrix,
-          (_) => List.generate(countMatrix, (_) => Player.openSpot),
-        ));
+    List<String> emptyList = ['', '', ''];
+    setState(() {
+      setMatrix0(emptyList);
+      setMatrix1(emptyList);
+      setMatrix2(emptyList);
+      matrix = List.generate(
+        countMatrix,
+        (_) => List.generate(countMatrix, (_) => Player.openSpot),
+      );
+    });
+    setBtnEnabled(true);
     _btnEnabled = true;
+    setlastMove("O");
+    lastMove = "O";
   }
 
   Color getFieldColor(String value) {
@@ -77,10 +191,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void setButtonDisabled() => setState(() => matrix = List.generate(
+  /*void setButtonDisabled() => setState(() => matrix = List.generate(
         countMatrix,
         (_) => List.generate(countMatrix, (_) => Player.openSpot),
-      ));
+      ));*/
 
   @override
   Widget build(BuildContext context) {
@@ -326,22 +440,41 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void matrixChange(int matrixX) {
+    if (matrixX == 0) {
+      setMatrix0(matrix[0]);
+    } else if (matrixX == 1) {
+      setMatrix1(matrix[1]);
+    } else if (matrixX == 2) {
+      setMatrix2(matrix[2]);
+    }
+  }
+
   void selectField(String value, int x, int y) {
     const newValue = Player.humanPlayer;
 
     setState(() {
+      setlastMove(newValue);
       lastMove = newValue;
+      print("X:" + x.toString() + "Y: " + y.toString());
       matrix[x][y] = newValue;
+      matrixChange(x);
     });
 
     if (isWinner(x, y, "X")) {
+      setlastMove(Player.openSpot);
       lastMove = Player.openSpot;
+      setBtnEnabled(false);
       _btnEnabled = false;
+      setWinnerTextString("The winner is the Player");
       winnerTextString = "The winner is the Player";
       return;
     } else if (isEnd()) {
+      setlastMove(Player.openSpot);
       lastMove = Player.openSpot;
+      setBtnEnabled(false);
       _btnEnabled = false;
+      setWinnerTextString("It's a TIE");
       winnerTextString = "It's a TIE";
       return;
     }
@@ -352,12 +485,18 @@ class _MyHomePageState extends State<MyHomePage> {
     y = temp.y;
 
     if (isWinner(x, y, "O")) {
+      setlastMove(Player.openSpot);
       lastMove = Player.openSpot;
+      setBtnEnabled(false);
       _btnEnabled = false;
+      setWinnerTextString("The winner is the Computer");
       winnerTextString = "The winner is the Computer";
     } else if (isEnd()) {
+      setlastMove(Player.openSpot);
       lastMove = Player.openSpot;
+      setBtnEnabled(false);
       _btnEnabled = false;
+      setWinnerTextString("It's a TIE");
       winnerTextString = "It's a TIE";
     }
   }
@@ -383,8 +522,10 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       setState(() {
+        setlastMove(newValue);
         lastMove = newValue;
         matrix[xr][xy] = newValue;
+        matrixChange(xr);
       });
       return Coordinates(xr, xy);
     } else if (mDifficultyLevel == difficultyLevel[1]) {
@@ -395,8 +536,10 @@ class _MyHomePageState extends State<MyHomePage> {
               willWin(i, j, "O") &&
               lastMove == Player.humanPlayer) {
             setState(() {
+              setlastMove(newValue);
               lastMove = newValue;
               matrix[i][j] = newValue;
+              matrixChange(i);
             });
             return Coordinates(i, j);
           }
@@ -417,8 +560,10 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       setState(() {
+        setlastMove(newValue);
         lastMove = newValue;
         matrix[xr][xy] = newValue;
+        matrixChange(xr);
       });
       return Coordinates(xr, xy);
     } else {
@@ -429,8 +574,10 @@ class _MyHomePageState extends State<MyHomePage> {
               willWin(i, j, "O") &&
               lastMove == Player.humanPlayer) {
             setState(() {
+              setlastMove(newValue);
               lastMove = newValue;
               matrix[i][j] = newValue;
+              matrixChange(i);
             });
             return Coordinates(i, j);
           }
@@ -443,8 +590,10 @@ class _MyHomePageState extends State<MyHomePage> {
               willWin(i, j, "X") &&
               lastMove == Player.humanPlayer) {
             setState(() {
+              setlastMove(newValue);
               lastMove = newValue;
               matrix[i][j] = newValue;
+              matrixChange(i);
             });
             return Coordinates(i, j);
           }
@@ -465,8 +614,10 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       setState(() {
+        setlastMove(newValue);
         lastMove = newValue;
         matrix[xr][xy] = newValue;
+        matrixChange(xr);
       });
       return Coordinates(xr, xy);
     }
