@@ -39,6 +39,9 @@ class Coordinates {
 class _MyHomePageState extends State<MyHomePage> {
   static const countMatrix = 3;
   static const double size = 120;
+  int playerScore = 0;
+  int computerScore = 0;
+  int tiesScore = 0;
   String winnerTextString = "";
   String lastMove = Player.openSpot;
   List<List<String>> matrix = [
@@ -53,10 +56,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
+    getPlayerScore();
+    getComputerScore();
     getlastMove();
     getBtnEnabled();
     getWinnerTextString();
     getMatrix();
+    getTiesScore();
     //setEmptyFields();
     //setWinnerTextString(getWinnerTextString());
     super.initState();
@@ -64,6 +70,57 @@ class _MyHomePageState extends State<MyHomePage> {
       prefix: 'assets/audio/',
       fixedPlayer: AudioPlayer()..setReleaseMode(ReleaseMode.STOP),
     );
+  }
+
+  Future<int> getPlayerScore() async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    final playerScore1 = pref.getInt('playerScore');
+
+    if (playerScore1 == null) {
+      setState(() => playerScore = 0);
+      return 1;
+    }
+    setState(() => playerScore = playerScore1);
+    return playerScore1;
+  }
+
+  Future<void> setPlayerScore(prefValue) async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.setInt('playerScore', prefValue);
+  }
+
+  Future<int> getComputerScore() async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    final computerScore1 = pref.getInt('computerScore');
+
+    if (computerScore1 == null) {
+      setState(() => computerScore = 0);
+      return 1;
+    }
+    setState(() => computerScore = computerScore1);
+    return computerScore1;
+  }
+
+  Future<void> setComputerScore(prefValue) async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.setInt('computerScore', prefValue);
+  }
+
+  Future<int> getTiesScore() async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    final tiesScore1 = pref.getInt('tiesScore');
+
+    if (tiesScore1 == null) {
+      setState(() => tiesScore = 0);
+      return 1;
+    }
+    setState(() => tiesScore = tiesScore1);
+    return tiesScore1;
+  }
+
+  Future<void> setTiesScore(prefValue) async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.setInt('tiesScore', prefValue);
   }
 
   Future<String> getWinnerTextString() async {
@@ -107,7 +164,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final matrix0 = pref.getStringList('matrix0');
     final matrix1 = pref.getStringList('matrix1');
     final matrix2 = pref.getStringList('matrix2');
-    print("MATRIXXXXXXXX: " + matrix.toString());
     if (matrix0 == null || matrix1 == null || matrix2 == null) {
       setState() {
         matrix[0] = ['', '', ''];
@@ -115,16 +171,12 @@ class _MyHomePageState extends State<MyHomePage> {
         matrix[2] = ['', '', ''];
       }
 
-      print("MATRIXXXXXXXX NULLLLL: " + matrix.toString());
       return [];
     }
-    //setState() {
     matrix[0] = matrix0;
     matrix[1] = matrix1;
     matrix[2] = matrix2;
-    //}
 
-    print("MATRIXXXXXXXX not: " + matrix.toString());
     return matrix1;
   }
 
@@ -237,6 +289,16 @@ class _MyHomePageState extends State<MyHomePage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         boardGame(1.9),
+        Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Wins: $playerScore "),
+              Text("Losses: $computerScore "),
+              Text("Ties: $tiesScore "),
+            ],
+          ),
+        ),
         if (!_btnEnabled) winnerText(),
       ],
     );
@@ -252,6 +314,13 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _bottomButtons(true),
+            Column(
+              children: [
+                Text("Wins: $playerScore "),
+                Text("Losses: $computerScore "),
+                Text("Ties: $tiesScore "),
+              ],
+            ),
             if (_btnEnabled)
               Container(
                 width: c_width,
@@ -468,6 +537,8 @@ class _MyHomePageState extends State<MyHomePage> {
       _btnEnabled = false;
       setWinnerTextString("The winner is the Player");
       winnerTextString = "The winner is the Player";
+      playerScore += 1;
+      setPlayerScore(playerScore);
       return;
     } else if (isEnd()) {
       setlastMove(Player.openSpot);
@@ -476,6 +547,8 @@ class _MyHomePageState extends State<MyHomePage> {
       _btnEnabled = false;
       setWinnerTextString("It's a TIE");
       winnerTextString = "It's a TIE";
+      tiesScore += 1;
+      setTiesScore(tiesScore);
       return;
     }
 
@@ -491,6 +564,8 @@ class _MyHomePageState extends State<MyHomePage> {
       _btnEnabled = false;
       setWinnerTextString("The winner is the Computer");
       winnerTextString = "The winner is the Computer";
+      computerScore += 1;
+      setComputerScore(computerScore);
     } else if (isEnd()) {
       setlastMove(Player.openSpot);
       lastMove = Player.openSpot;
@@ -498,6 +573,8 @@ class _MyHomePageState extends State<MyHomePage> {
       _btnEnabled = false;
       setWinnerTextString("It's a TIE");
       winnerTextString = "It's a TIE";
+      tiesScore += 1;
+      setTiesScore(tiesScore);
     }
   }
 
