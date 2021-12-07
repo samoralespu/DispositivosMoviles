@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter/services.dart';
@@ -9,6 +10,7 @@ import 'package:firebase_database/firebase_database.dart';
 
 class MyHomePage extends StatefulWidget {
   final String title;
+
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   @override
@@ -56,6 +58,9 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String> difficultyLevel = ["Easy", "Harder", "Expert"];
   String mDifficultyLevel = "Easy";
   late final AudioCache _audioCache;
+  final fb = FirebaseDatabase.instance;
+  final myController = TextEditingController();
+  final name = "Name";
 
   @override
   void initState() {
@@ -219,6 +224,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void setEmptyFields() {
+    final ref = fb.ref();
+
+    ref.child("Prueba").once().then((value) {
+      print(value.snapshot.value);
+    });
+
     List<String> emptyList = ['', '', ''];
     setState(() {
       setMatrix0(emptyList);
