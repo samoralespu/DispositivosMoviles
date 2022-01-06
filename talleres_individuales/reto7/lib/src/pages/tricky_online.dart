@@ -8,15 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:firebase_database/firebase_database.dart';
 
-class MyHomePage extends StatefulWidget {
-  final String title;
-
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
 abstract class _Utils {
   static List<Widget> modelBuilder<M>(
           List<M> models, Widget Function(int index, M model) builder) =>
@@ -41,7 +32,17 @@ class Coordinates {
   Coordinates(this.x, this.y);
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class TickyOnlinePage extends StatefulWidget {
+  final String title;
+
+  const TickyOnlinePage({Key? key, required this.title}) : super(key: key);
+
+  @override
+  State<TickyOnlinePage> createState() => _TickyOnlinePageState();
+}
+
+class _TickyOnlinePageState extends State<TickyOnlinePage> {
+  String tempWinText = "wins";
   static const countMatrix = 3;
   static const double size = 120;
   int playerScore = 0;
@@ -58,12 +59,13 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String> difficultyLevel = ["Easy", "Harder", "Expert"];
   String mDifficultyLevel = "Easy";
   late final AudioCache _audioCache;
-  final fb = FirebaseDatabase.instance;
+  final fb = FirebaseDatabase.instance.ref();
   final myController = TextEditingController();
   final name = "Name";
 
   @override
   void initState() {
+    _activateListeners();
     getPlayerScore();
     getComputerScore();
     getlastMove();
@@ -71,6 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
     getWinnerTextString();
     getMatrix();
     getTiesScore();
+
     //setEmptyFields();
     //setWinnerTextString(getWinnerTextString());
     super.initState();
@@ -220,12 +223,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void setEmptyFields() {
-    final ref = fb.ref();
-
     /*ref.child("Prueba").once().then((value) {
       print(value.snapshot.value);
     });*/
 
+    fb.child("Prueba").set('nuevo valor 2');
     /*ref.child("Prueba").once().then((value) {
       print(data.value);
       print(data.key);
@@ -310,7 +312,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Wins: $playerScore "),
+              Text("$tempWinText: $playerScore "),
               Text("Losses: $computerScore "),
               Text("Ties: $tiesScore "),
             ],
@@ -865,4 +867,18 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       );
+
+  void _activateListeners() {
+    /*ref.child("Prueba").once().then((value) {
+      print(value.snapshot.value);
+    });*/
+
+    //fb.child("Prueba").set('nuevo valor');
+    fb.child("message").onValue.listen((event) {
+      final String message = event.snapshot.value as String;
+      setState(() {
+        tempWinText = message;
+      });
+    });
+  }
 }

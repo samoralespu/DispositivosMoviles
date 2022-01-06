@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reto3/src/pages/tricky_game.dart';
-
+import 'package:reto3/src/pages/tricky_online.dart';
 
 class MyApp extends StatelessWidget {
   static const String title = 'Tricky en flutter';
@@ -15,10 +15,11 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: const Center(
-        child: MyHomePage( title: "Tricky en flutter",)
-      ),
+          child: TickyOnlinePage(
+        title: "Tricky en flutter",
+      )
+          //MyHomePage( title: "Tricky en flutter",)
+          ),
     );
   }
 }
-
-
