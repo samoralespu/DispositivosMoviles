@@ -96,6 +96,7 @@ class _AddEditProductState extends State<AddEditProduct> {
                     }
                     return null;
                   },
+                  isNumberInput: true
                 ),
                 FormHelper.fieldLabel("email de la empresa"),
                 FormHelper.textInput(
@@ -145,9 +146,9 @@ class _AddEditProductState extends State<AddEditProduct> {
         if (categories.hasData) {
           return FormHelper.selectDropdown(
             context,
-            model.telefono,
+            model.clasificacion,
             categories.data,
-            (value) => {this.model.telefono = int.parse(value)},
+            (value) => {this.model.clasificacion = int.parse(value)},
             onValidate: (value) {
               if (value == null) {
                 return 'Ingrese la clasificacion de la empresa.';
@@ -197,7 +198,7 @@ class _AddEditProductState extends State<AddEditProduct> {
               });
             } else {
               dbService.addEmpresa(model).then((value) {
-               FormHelper.showMessage(
+              FormHelper.showMessage(
                   context,
                   "SQFLITE CRUD",
                   "Data Modified Successfully",

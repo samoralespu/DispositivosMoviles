@@ -14,6 +14,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   DBService dbService;
+  bool _sortNameAsc = true;
+  bool _sortAgeAsc = true;
+  bool _sortHightAsc = true;
+  bool _sortAsc = true;
+  int _sortColumnIndex;
+  bool sort = false;
 
   @override
   void initState() {
@@ -50,39 +56,47 @@ class _HomePageState extends State<HomePage> {
     List<Widget> widgets = new List<Widget>();
 
     widgets.add(
-      new Align(
-        alignment: Alignment.centerRight,
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AddEditProduct(),
-              ),
-            );
-          },
-          child: Container(
-            height: 40.0,
-            width: 100,
-            color: Colors.blueAccent,
-            child: Center(
-              child: Text(
-                "Añadir empresa",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+      Row(
+        children: [
+          new Align(
+            alignment: Alignment.centerRight,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddEditProduct(),
+                  ),
+                );
+              },
+              child: Container(
+                height: 40.0,
+                width: 100,
+                color: Colors.blueAccent,
+                child: Center(
+                  child: Text(
+                    "Añadir empresa",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
+
+    
 
     widgets.add(
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [_buildDataTable(empresas)],
+        children: [
+          _buildDataTable(empresas)
+          ],
       ),
     );
 
@@ -95,10 +109,43 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  String category(int categoryNumber){
+
+    if(categoryNumber == 1){
+      return "consultoría";
+    } else if(categoryNumber == 2){
+      return "desarrollo a la medida";
+    } else if(categoryNumber == 3){
+      return "fábrica de software";
+    } else{
+      return "fábrica de software";
+    }
+  }
+  onSortColum(int columnIndex, bool ascending) {
+    
+  }
+
   Widget _buildDataTable(List<Empresa> model) {
+
+    
+
     return DataTable(
+      sortAscending: sort,
+      sortColumnIndex: 0,
       columns: [
         DataColumn(
+          onSort: (columnIndex, ascending) {
+            if (columnIndex == 0) {
+              if (ascending) {
+                model.sort((a, b) => a.nombre.compareTo(b.nombre));
+              } else {
+                model.sort((a, b) => b.nombre.compareTo(a.nombre));
+              }
+            }
+            setState(() {
+              sort = !sort;
+            });
+          },
           label: Text(
             "Empresa",
             style: TextStyle(
@@ -108,8 +155,20 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         DataColumn(
+          onSort: (columnIndex, ascending) {
+            setState(() {
+              sort = !sort;
+            });
+            if (columnIndex == 0) {
+              if (ascending) {
+                model.sort((a, b) => a.clasificacion.compareTo(b.clasificacion));
+              } else {
+                model.sort((a, b) => b.clasificacion.compareTo(a.clasificacion));
+              }
+            }
+          },
           label: Text(
-            "url",
+            "Clasificación",
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w900,
@@ -126,7 +185,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ],
-      sortColumnIndex: 1,
       rows: model.map(
             (data) => DataRow(
               cells: <DataCell>[
@@ -138,7 +196,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 DataCell(
                   Text(
-                    data.nombre,
+                    category(data.clasificacion),
                     style: TextStyle(fontSize: 12),
                   ),
                 ),
@@ -168,9 +226,9 @@ class _HomePageState extends State<HomePage> {
                           onPressed: () {
                             FormHelper.showMessage(
                               context,
-                              "SQFLITE CRUD",
-                              "Do you want to delete this record?",
-                              "Yes",
+                              "Borrar empresa",
+                              "¿Seguro desea borrar esta empresa?",
+                              "Si",
                               () {
                                 dbService.deleteEmpresa(data).then((value) {
                                   setState(() {

@@ -39,6 +39,13 @@ class DBService {
     return categories.map((item) => CategoryModel.fromMap(item)).toList();
   }
 
+  Future<List<CategoryModel>> getCategorie() async {
+    await DB.init();
+    List<Map<String, dynamic>> categories = await DB.query(CategoryModel.table);
+
+    return categories.map((item) => CategoryModel.fromMap(item)).toList();
+  }
+
   Future<bool> deleteEmpresa(Empresa model) async {
     await DB.init();
     bool isSaved = false;
