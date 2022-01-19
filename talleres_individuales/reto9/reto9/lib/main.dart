@@ -46,7 +46,7 @@ class HomePage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
           context, MaterialPageRoute(
-              builder: (context) => MapsScreen()
+              builder: (context) => MapSample()
             )
           ),
         tooltip: 'Increment',
